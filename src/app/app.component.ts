@@ -6,5 +6,10 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'app';
+  title = 'Solar Powered Autonomous Boat';
+  navMenuItems = [
+    {text: 'Journey', route: 'journey'},
+    {text: 'Sensors', route: 'sensor'},
+    {text: 'Status', route: 'status'},
+  ];
 }
