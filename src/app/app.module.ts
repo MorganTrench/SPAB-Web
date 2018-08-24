@@ -17,13 +17,15 @@ import { AppRoutingModule } from './/app-routing.module';
 import { JourneyComponent } from './journey/journey.component';
 import { SensorsComponent } from './sensors/sensors.component';
 import { StatusComponent } from './status/status.component';
+import { MapExtrasDirective } from './map-extras.directive';
 
 @NgModule({
   declarations: [
     AppComponent,
     JourneyComponent,
     SensorsComponent,
-    StatusComponent
+    StatusComponent,
+    MapExtrasDirective
   ],
   imports: [
     BrowserModule,
