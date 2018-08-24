@@ -1,6 +1,11 @@
-<mat-toolbar class="navigation-bar">
-  <div><h1>{{title}}</h1></div>
-  <button *ngFor="let navItem of navMenuItems" routerLink={{navItem.route}} mat-button>{{navItem.text}}</button>
-</mat-toolbar>
-<router-outlet></router-outlet>
+<div>
+  <mat-toolbar class="navigation-bar">
+    <div><h1>{{title}}</h1></div>
+    <button *ngFor="let navItem of navMenuItems" routerLink={{navItem.route}} mat-button>{{navItem.text}}</button>
+  </mat-toolbar>
+  <router-outlet></router-outlet>
+</div>
+
+
+
 
