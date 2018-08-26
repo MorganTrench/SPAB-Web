@@ -31,9 +31,7 @@
               "src/styles.css",
               "node_modules/leaflet/dist/leaflet.css"
             ],
-            "scripts": [
-              "node_modules/leaflet-providers/leaflet-providers.js"
-            ]
+            "scripts": []
           },
           "configurations": {
             "production": {

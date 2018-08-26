@@ -16,7 +16,7 @@ export class MapExtrasDirective implements OnInit {
 
   ngOnInit () {
     this.map = this.leafletDirective.getMap();
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer.provider('Esri.OceanBasemap', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(this.map);
     this.map.setView(L.latLng([ -31.9505, 115.8605 ]), 7, null);
