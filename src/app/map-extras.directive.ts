@@ -1,6 +1,7 @@
 import { Directive, OnInit, HostListener } from '@angular/core';
 import { LeafletModule, LeafletDirective } from '@asymmetrik/ngx-leaflet';
 import * as L from 'leaflet';
+import 'leaflet-providers'; // attaches a 'provider' function to L.tileLayer
 
 @Directive({
   selector: '[appMapExtras]'
