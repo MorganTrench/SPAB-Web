@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { JourneyComponent } from './journey/journey.component';
-import { SensorsComponent } from './sensors/sensors.component';
-import { StatusComponent } from './status/status.component';
+import { JourneyComponent } from './components/journey/journey.component';
+import { SensorsComponent } from './components/sensors/sensors.component';
+import { StatusComponent } from './components/status/status.component';
 
 const routes: Routes = [
   { path: 'journey', component: JourneyComponent },

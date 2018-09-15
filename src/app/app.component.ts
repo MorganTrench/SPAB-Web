@@ -8,7 +8,8 @@ import { Component } from '@angular/core';
 export class AppComponent {
   title = 'Solar Powered Autonomous Boat';
   navMenuItems = [
-    {text: 'Journey', route: 'journey'},
+    {text: 'Tracking', route: 'journey'},
+    {text: 'Planning', route: 'journey'},
     {text: 'Sensors', route: 'sensor'},
     {text: 'Status', route: 'status'},
   ];

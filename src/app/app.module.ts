@@ -14,10 +14,12 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './/app-routing.module';
-import { JourneyComponent } from './journey/journey.component';
-import { SensorsComponent } from './sensors/sensors.component';
-import { StatusComponent } from './status/status.component';
-import { MapExtrasDirective } from './map-extras.directive';
+import { JourneyComponent } from './components/journey/journey.component';
+import { SensorsComponent } from './components/sensors/sensors.component';
+import { StatusComponent } from './components/status/status.component';
+import { MapExtrasDirective } from './directives/map-extras.directive';
+
+import {MapServiceService} from './services/map-service/map-service.service';
 
 @NgModule({
   declarations: [
@@ -39,7 +41,7 @@ import { MapExtrasDirective } from './map-extras.directive';
     // Flex
     FlexLayoutModule
   ],
-  providers: [],
+  providers: [MapServiceService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
