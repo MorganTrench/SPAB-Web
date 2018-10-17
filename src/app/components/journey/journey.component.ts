@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
-import { SampleService } from '../../services/sample/sample.service';
+import { SampleService, Sample } from '../../services/sample/sample.service';
 import { Subscription } from 'rxjs';
 import { latLng } from 'leaflet';
 import { MapServiceService } from '../../services/map-service/map-service.service';
@@ -24,7 +24,9 @@ export class JourneyComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /* We use this instead of of ngOnInit() to ensure the leaflet map is available in its service before using it to it */
   ngAfterViewInit() {
-    this.subscription = this.sampleService.subscribe((coordinates) => { this.mapServiceService.addToPath(coordinates); });
+    this.subscription = this.sampleService.getSampleSubject().subscribe((sample) => {
+      this.mapServiceService.addToPath(sample);
+    });
   }
 
   ngOnDestroy() {

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
+import { Sample } from '../sample/sample.service';
 import * as L from 'leaflet';
 import 'leaflet-providers'; // attaches a 'provider' function to L.tileLayer
-import { latLng } from 'leaflet';
 
 
 @Injectable({
@@ -23,14 +23,12 @@ export class MapServiceService {
       opacity: 0.5,
       smoothFactor: 1
     });
-    this.path.addLatLng(L.latLng([ -31.9505, 115.8605 ]));
   }
 
   setMap(inMap: L.Map) {
     this.map = inMap;
     this.map.setView(L.latLng([ -31.9505, 115.8605 ]), 7, null);
-    L.tileLayer.provider('OpenStreetMap.Mapnik', { attribution: '&copy; OpenStreetMap contributors' }
-    ).addTo(this.map);
+    L.tileLayer.provider('OpenStreetMap.Mapnik', { attribution: '&copy; OpenStreetMap contributors' }).addTo(this.map);
     this.path.addTo(this.map);
   }
 
@@ -41,8 +39,14 @@ export class MapServiceService {
     }
   }
 
-  addToPath(coordinates) {
-    const latlng = L.latLng(coordinates);
+  addToPath(sample: Sample) {
+    // Extend Polyline
+    const latlng = L.latLng([sample.lat, sample.long]);
     this.path.addLatLng(latlng);
+    // Add marker with popup
+    const marker = L.marker(latlng).bindPopup(JSON.stringify(sample, null, '\t'), { offset: L.point(0, 40) });
+    marker.on('mouseover', () => { marker.openPopup(); });
+    marker.on('mouseout', () => { marker.openPopup(); });
+    marker.addTo(this.map);
   }
 }
