@@ -44,9 +44,15 @@ export class MapServiceService {
     const latlng = L.latLng([sample.lat, sample.long]);
     this.path.addLatLng(latlng);
     // Add marker with popup
-    const marker = L.marker(latlng).bindPopup(JSON.stringify(sample, null, '\t'), { offset: L.point(0, 40) });
+    const marker = L.marker(latlng).bindPopup(JSON.stringify(sample, null, '\t'), { offset: L.point(0, 0) });
     marker.on('mouseover', () => { marker.openPopup(); });
     marker.on('mouseout', () => { marker.openPopup(); });
+    marker.setIcon(L.icon({
+      iconSize: [ 20, 20 ],
+      iconUrl: 'leaflet/marker-icon.png',
+      className: 'invisible_marker_icon'
+      // shadowUrl: 'leaflet/marker-shadow.png'
+   }));
     marker.addTo(this.map);
   }
 }
