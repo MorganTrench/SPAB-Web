@@ -22,7 +22,7 @@ export class SampleService {
       this.currentVal.lat += dx; this.currentVal.long += dy;
       this.currentVal.temp += (Math.random() > 0.5) ? 0.25 * Math.random() : -0.25 * Math.random();
       this.RS.next(this.currentVal);
-    }, 1 * 1000);
+    }, 0.5 * 1000);
   }
 
   getSampleSubject(): ReplaySubject<Sample> { return this.RS; }

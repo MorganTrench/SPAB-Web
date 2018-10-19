@@ -24,13 +24,15 @@ export class JourneyComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /* We use this instead of of ngOnInit() to ensure the leaflet map is available in its service before using it to it */
   ngAfterViewInit() {
-    this.subscription = this.sampleService.getSampleSubject().subscribe((sample) => {
-      this.mapServiceService.addToPath(sample);
-    });
+    this.subscription = this.sampleService.getSampleSubject()
+      .subscribe((sample) => {
+        this.mapServiceService.addToPath(sample);
+      });
   }
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+    this.mapServiceService.clear();
   }
 
 }
