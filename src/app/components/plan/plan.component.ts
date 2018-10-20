@@ -1,10 +1,6 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { LeafletModule, LeafletDirective } from '@asymmetrik/ngx-leaflet';
-import { SampleService, Sample } from '../../services/sample/sample.service';
-import { Subscription } from 'rxjs';
-import { latLng } from 'leaflet';
-import * as L from 'leaflet';
-import 'leaflet-providers'; // attaches a 'provider' function to L.tileLayer
+import { LeafletMouseEvent, Map, LatLng, marker as makeMarker, icon, Polyline, polyline, point, LeafletEvent, Marker } from 'leaflet';
 import { MapServiceService } from '../../services/map-service/map-service.service';
 
 
@@ -22,21 +18,51 @@ export class PlanWrapperComponent {
   styleUrls: ['./plan.component.css']
 })
 export class PlanComponent implements OnInit {
-
   imports: [LeafletModule];
-
   leafletDirective: LeafletDirective;
-  map: L.Map;
+  map: Map;
+
+  waypoints: Marker[];
+  path: Polyline;
 
   constructor(leafletDirective: LeafletDirective, private mapServiceService: MapServiceService) {
-    console.log('pc');
     this.leafletDirective = leafletDirective;
+    this.waypoints = [];
+    this.path = polyline([], {
+      color: 'red',
+      weight: 3,
+      opacity: 0.5,
+      smoothFactor: 1
+    });
   }
 
   ngOnInit() {
-    console.log('pi');
     this.map = this.leafletDirective.getMap();
+    this.path.addTo(this.map);
+    this.map.on('click', (mouseEvent: LeafletMouseEvent) => {
+      this.addWaypointAt(mouseEvent.latlng);
+    });
     this.mapServiceService.setupMap(this.map);
+  }
+
+  addWaypointAt(loc: LatLng) {
+    const marker = makeMarker(loc, {draggable: true});
+    marker.setIcon(icon({
+      iconUrl: 'leaflet/marker-icon.png',
+      shadowUrl: 'leaflet/marker-shadow.png',
+      iconAnchor: point(12.5, 40)
+    }));
+    marker.on('move', (event: LeafletEvent) => {
+      this.path.setLatLngs(this.waypoints.map((wp) => wp.getLatLng()));
+    });
+    marker.on('dblclick', () => {
+      console.log('double click, removing');
+      marker.removeFrom(this.map);
+      this.waypoints.splice(this.waypoints.indexOf(marker), 1);
+    });
+    marker.addTo(this.map);
+    this.waypoints.push(marker);
+    this.path.setLatLngs(this.waypoints.map((wp) => wp.getLatLng()));
   }
 
 }

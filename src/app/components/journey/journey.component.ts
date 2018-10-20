@@ -32,12 +32,10 @@ export class JourneyComponent implements OnInit, OnDestroy {
   markers: L.Marker[];
 
   constructor(leafletDirective: LeafletDirective, private sampleService: SampleService, private mapServiceService: MapServiceService) {
-      console.log('jc');
       this.leafletDirective = leafletDirective;
     }
 
   ngOnInit() {
-    console.log('ji');
     this.map = this.leafletDirective.getMap();
     this.mapServiceService.setupMap(this.map);
 
