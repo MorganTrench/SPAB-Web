@@ -1,29 +1,27 @@
-/* Angular */
+/* Imports */
+// Angular
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
-
-/* Leaflet */
+// Leaflet
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
-
-/* Angular Material */
+// Angular Material
 import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatButtonModule} from '@angular/material';
-
-/* Angular Flex */
+// Angular Flex
 import { FlexLayoutModule } from '@angular/flex-layout';
 
-/* Components*/
+/* Custom */
+// Modules
+import { AppRoutingModule } from './app-routing.module';
+// Component
 import { AppComponent } from './app.component';
-import { AppRoutingModule } from './/app-routing.module';
-import { JourneyComponent } from './components/journey/journey.component';
+import { JourneyComponent, JourneyWrapperComponent } from './components/journey/journey.component';
+import { PlanComponent, PlanWrapperComponent } from './components/plan/plan.component';
 import { SensorsComponent } from './components/sensors/sensors.component';
 import { StatusComponent } from './components/status/status.component';
-import { PlanComponent } from './components/plan/plan.component';
-import { MapExtrasDirective } from './directives/map-extras.directive';
-
-/* Services */
+// Services
 import { MapServiceService } from './services/map-service/map-service.service';
 import { SampleService } from './services/sample/sample.service';
 
@@ -31,10 +29,11 @@ import { SampleService } from './services/sample/sample.service';
   declarations: [
     AppComponent,
     JourneyComponent,
+    JourneyWrapperComponent,
+    PlanComponent,
+    PlanWrapperComponent,
     SensorsComponent,
-    StatusComponent,
-    MapExtrasDirective,
-    PlanComponent
+    StatusComponent
   ],
   imports: [
     // Angular
