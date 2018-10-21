@@ -11,7 +11,7 @@ import { MapServiceService } from '../../services/map-service/map-service.servic
     '[(leafletZoom)]="mapService.zoomLevel"' +
     ' app-plan></div>'})
 export class PlanWrapperComponent {
-  constructor(private mapService: MapServiceService) {}
+  constructor(public mapService: MapServiceService) {}
 }
 
 @Component({

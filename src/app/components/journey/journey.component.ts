@@ -14,7 +14,7 @@ import { MapServiceService } from '../../services/map-service/map-service.servic
     '[(leafletZoom)]="mapService.zoomLevel"' +
     ' app-journey></div>'})
 export class JourneyWrapperComponent {
-  constructor(private mapService: MapServiceService) {}
+  constructor(public mapService: MapServiceService) {}
 }
 @Component({
   /* It is against the Angular 6 style guide to use an attribute selector for a component,
