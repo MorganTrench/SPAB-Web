@@ -12,16 +12,17 @@ export class SampleService {
   currentVal: Sample;
 
   constructor() {
-    this.currentVal = new Sample(-31.9505, 115.8605, 300);
+    this.currentVal = new Sample(new Date(), -31.9505, 115.8605, 300);
     this.RS = new ReplaySubject();
 
     setInterval(() => {
+      this.currentVal.timestamp = new Date();
       const angle = 2 * Math.PI * Math.random(); const dist = 0.01 * Math.random();
       const dx = dist * Math.cos(angle); let dy = dist * Math.sin(angle);
       if (dy > 0) { dy = -dy; }
       this.currentVal.lat += dx; this.currentVal.long += dy;
       this.currentVal.temp += (Math.random() > 0.5) ? 0.25 * Math.random() : -0.25 * Math.random();
-      this.RS.next(this.currentVal);
+      this.RS.next({...this.currentVal});
     }, 0.5 * 1000);
   }
 
@@ -29,7 +30,7 @@ export class SampleService {
 }
 
 export class Sample {
-  constructor(public lat: number, public long: number, public temp: number) {
-    this.lat = lat; this.long = long; this.temp = temp;
+  constructor(public timestamp: Date, public lat: number, public long: number, public temp: number) {
+    this.timestamp = timestamp; this.lat = lat; this.long = long; this.temp = temp;
   }
 }

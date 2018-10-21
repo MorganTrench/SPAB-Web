@@ -4,7 +4,12 @@ import { LeafletMouseEvent, Map, LatLng, marker as makeMarker, icon, Polyline, p
 import { MapServiceService } from '../../services/map-service/map-service.service';
 
 
-@Component({template: '<div leaflet [(leafletCenter)]="mapService.viewLocation" app-plan></div>'})
+@Component({
+  template:
+    '<div leaflet ' +
+    '[(leafletCenter)]="mapService.viewLocation"' +
+    '[(leafletZoom)]="mapService.zoomLevel"' +
+    ' app-plan></div>'})
 export class PlanWrapperComponent {
   constructor(private mapService: MapServiceService) {}
 }

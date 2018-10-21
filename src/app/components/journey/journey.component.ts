@@ -7,7 +7,12 @@ import * as L from 'leaflet';
 import 'leaflet-providers'; // attaches a 'provider' function to L.tileLayer
 import { MapServiceService } from '../../services/map-service/map-service.service';
 
-@Component({template: '<div leaflet [(leafletCenter)]="mapService.viewLocation" app-journey></div>'})
+@Component({
+  template:
+    '<div leaflet ' +
+    '[(leafletCenter)]="mapService.viewLocation"' +
+    '[(leafletZoom)]="mapService.zoomLevel"' +
+    ' app-journey></div>'})
 export class JourneyWrapperComponent {
   constructor(private mapService: MapServiceService) {}
 }
@@ -76,5 +81,4 @@ export class JourneyComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.subscription.unsubscribe();
   }
-
 }
