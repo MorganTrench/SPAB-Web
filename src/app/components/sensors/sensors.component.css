@@ -3,6 +3,6 @@ h1 {
     text-align: center;
 }
 
-#tempGraph {
+.sensor-graph {
     width: 100% !important;
 }

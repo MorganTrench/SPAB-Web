@@ -11,14 +11,19 @@ import { bufferTime, filter } from 'rxjs/operators';
 })
 export class SensorsComponent implements OnInit, OnDestroy {
 
+  // Temperature
+  tempGraph: Dygraph; tempData: [Date, number][];
   @ViewChild('tempGraph') tempGraphElem: ElementRef;
-  tempGraph: Dygraph;
-  tempData: [Date, number][];
+
+  // Power
+  powerGraph: Dygraph; powerData: [Date, number][];
+  @ViewChild('powerGraph') powerGraphElem: ElementRef;
 
   subscription: Subscription;
 
   constructor(private sampleServie: SampleService) {
     this.tempGraph = null; this.tempData = [];
+    this.powerGraph = null; this.powerData = [];
   }
 
   ngOnInit() {
@@ -26,13 +31,24 @@ export class SensorsComponent implements OnInit, OnDestroy {
       bufferTime(0.05 * 1000),
       filter((samples) => (samples.length > 0))
     ).subscribe((samples) => {
+      // Unpack buffer
       samples.forEach((sample) => {
         this.tempData.push([sample.timestamp, sample.temp]);
+        this.powerData.push([sample.timestamp, sample.power]);
       });
+
+      // Update Temp Graph
       if (this.tempGraph != null) {
         this.tempGraph.updateOptions( { 'file': this.tempData });
       } else {
         this.tempGraph = new Dygraph(this.tempGraphElem.nativeElement, this.tempData, {});
+      }
+
+      // Update Power Graph
+      if (this.powerGraph != null) {
+        this.powerGraph.updateOptions( { 'file': this.powerData });
+      } else {
+        this.powerGraph = new Dygraph(this.powerGraphElem.nativeElement, this.powerData, {});
       }
     });
   }
