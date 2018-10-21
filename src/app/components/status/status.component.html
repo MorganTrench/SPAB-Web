@@ -1,3 +1,14 @@
-<p>
-  status works!
-</p>
+<mat-card class="backing">
+  <mat-card fxLayout="row" fxLayoutAlign="space-around center">
+    <div>Latitude: {{latestSample.lat | number:'0.5-8'}}</div>
+    <div>Longitude: {{latestSample.long | number:'0.5-8'}}</div>
+  </mat-card>
+  <mat-card fxLayout="column" fxLayoutAlign="space-around center">
+    <div class="power-spacer">Power: {{latestSample.power | number:'0.0-0'}} / 24,000 mAh</div>
+    <mat-progress-bar [mode]="determinate" [value]="latestSample.power / 24000 * 100"></mat-progress-bar>
+  </mat-card>
+  <mat-card fxLayout="row" fxLayoutAlign="space-around center">
+    <div>Temperature: {{latestSample.temp | number:'0.0-3'}} °K</div>
+    <div>Salinity: {{latestSample.salinity | number:'0.0-2'}} g/Kg</div>
+  </mat-card>
+</mat-card>

@@ -1,0 +1,12 @@
+mat-card {
+    margin: 20px;
+}
+
+mat-card.backing {
+    margin: 10px;
+    background-color: rgb(240, 251, 255);
+}
+
+div.power-spacer {
+    margin: 0 0 10px 0;
+}

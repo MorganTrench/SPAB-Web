@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import Dygraph from 'dygraphs';
-import { SampleService, Sample } from 'src/app/services/sample/sample.service';
+import { SampleService } from 'src/app/services/sample/sample.service';
 import { Subscription} from 'rxjs';
 import { bufferTime, filter } from 'rxjs/operators';
 

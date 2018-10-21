@@ -7,8 +7,7 @@ import { HttpClientModule } from '@angular/common/http';
 // Leaflet
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 // Angular Material
-import {MatToolbarModule} from '@angular/material/toolbar';
-import {MatButtonModule} from '@angular/material';
+import { MatButtonModule, MatToolbarModule, MatCardModule, MatProgressBarModule } from '@angular/material';
 // Angular Flex
 import { FlexLayoutModule } from '@angular/flex-layout';
 
@@ -46,6 +45,8 @@ import { SampleService } from './services/sample/sample.service';
     MatButtonModule,
     MatToolbarModule,
     AppRoutingModule,
+    MatCardModule,
+    MatProgressBarModule,
     // Flex
     FlexLayoutModule
   ],
