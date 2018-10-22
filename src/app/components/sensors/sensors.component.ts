@@ -41,14 +41,21 @@ export class SensorsComponent implements OnInit, OnDestroy {
       if (this.tempGraph != null) {
         this.tempGraph.updateOptions( { 'file': this.tempData });
       } else {
-        this.tempGraph = new Dygraph(this.tempGraphElem.nativeElement, this.tempData, {});
+        this.tempGraph = new Dygraph(this.tempGraphElem.nativeElement, this.tempData, {
+          ylabel: 'Temperature (K)',
+          xlabel: 'Timestamp'
+        });
       }
 
       // Update Power Graph
       if (this.powerGraph != null) {
         this.powerGraph.updateOptions( { 'file': this.powerData });
       } else {
-        this.powerGraph = new Dygraph(this.powerGraphElem.nativeElement, this.powerData, {});
+        this.powerGraph = new Dygraph(this.powerGraphElem.nativeElement, this.powerData, {
+          stackedGraph: true,
+          ylabel: 'Battery Charge (mAh)',
+          xlabel: 'Timestamp'
+        });
       }
     });
   }
