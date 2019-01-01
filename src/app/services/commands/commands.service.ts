@@ -1,23 +1,23 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root"
 })
 export class CommandsService {
-
   nextId: number;
   commands: Command[];
 
   constructor() {
-    this.nextId = null; this.commands = [];
+    this.nextId = null;
+    this.commands = [];
     // TOD0: Get commands and next id from server
   }
 
-  setCommands(newCommands: Command[]){
+  setCommands(newCommands: Command[]) {
     this.commands = newCommands;
   }
-  getCommands(): Command[]{
+  getCommands(): Command[] {
     return this.commands;
   }
   // addCommands(newCommands: Command[]) { }
@@ -28,7 +28,9 @@ export class Command {
   private id: number;
   private index: number;
   constructor(public action: string, public lat: number, public long: number) {
-    this.action = action; this.lat = lat; this.long = long;
+    this.action = action;
+    this.lat = lat;
+    this.long = long;
   }
   setIndex(index: number) {
     this.index = index;
