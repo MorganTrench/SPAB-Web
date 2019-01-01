@@ -42,12 +42,13 @@ export class PlanComponent implements OnInit {
   imports: [LeafletModule];
   leafletDirective: LeafletDirective;
   map: LeafetMap;
-  path: Polyline;
-
-  commands: Command[];
 
   currentLatLng: LatLng;
+  traveledPath: Polyline;
+
+  plannedPath: Polyline;
   waypoints: Marker[];
+  commands: Command[];
   lookup: Map<Marker, Command>;
 
   constructor(
@@ -59,7 +60,13 @@ export class PlanComponent implements OnInit {
     this.leafletDirective = leafletDirective;
     this.commands = commandService.getCommands();
     this.lookup = new Map();
-    this.path = polyline([], {
+    this.traveledPath = polyline([], {
+      color: 'red',
+      weight: 3,
+      opacity: 0.5,
+      smoothFactor: 1
+    });
+    this.plannedPath = polyline([], {
       color: 'blue',
       weight: 3,
       opacity: 0.5,
@@ -73,7 +80,8 @@ export class PlanComponent implements OnInit {
   ngOnInit() {
     // Map setup
     this.map = this.leafletDirective.getMap();
-    this.path.addTo(this.map);
+    this.traveledPath.addTo(this.map);
+    this.plannedPath.addTo(this.map);
 
     // Generate waypoints from current commands
     this.commands.forEach(command => {
@@ -88,8 +96,9 @@ export class PlanComponent implements OnInit {
     }, 2 * 1000);
 
     this.sampleService.getSampleSubject().subscribe(sample => {
-      this.currentLatLng = new LatLng(sample.lat, sample.long, 0);
-      this.path.setLatLngs(this.generatePathLatLngs());
+      this.traveledPath.addLatLng(new LatLng(sample.lat, sample.long));
+      this.currentLatLng = new LatLng(sample.lat, sample.long);
+      this.plannedPath.setLatLngs(this.generatePathLatLngs());
     });
   }
 
@@ -103,7 +112,7 @@ export class PlanComponent implements OnInit {
       })
     );
     marker.on('move', (event: LeafletEvent) => {
-      this.path.setLatLngs(this.generatePathLatLngs());
+      this.plannedPath.setLatLngs(this.generatePathLatLngs());
       const corresponding = this.lookup.get(marker);
       corresponding.lat = marker.getLatLng().lat;
       corresponding.long = marker.getLatLng().lng;
@@ -111,12 +120,12 @@ export class PlanComponent implements OnInit {
     marker.on('dblclick', () => {
       marker.removeFrom(this.map);
       this.waypoints.splice(this.waypoints.indexOf(marker), 1);
-      this.path.setLatLngs(this.generatePathLatLngs());
+      this.plannedPath.setLatLngs(this.generatePathLatLngs());
       this.commands.splice(this.commands.indexOf(this.lookup.get(marker)), 1);
     });
     marker.addTo(this.map);
     this.waypoints.push(marker);
-    this.path.setLatLngs(this.generatePathLatLngs());
+    this.plannedPath.setLatLngs(this.generatePathLatLngs());
     if (command == null) {
       command = new Command('moveTo', loc.lat, loc.lng);
       this.commands.push(command);
