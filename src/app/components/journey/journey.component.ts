@@ -12,7 +12,8 @@ import { MapServiceService } from '../../services/map-service/map-service.servic
     '<div leaflet ' +
     '[(leafletCenter)]="mapService.viewLocation"' +
     '[(leafletZoom)]="mapService.zoomLevel"' +
-    ' app-journey></div>'})
+    ' app-journey></div>'
+})
 export class JourneyWrapperComponent {
   constructor(public mapService: MapServiceService) {}
 }
@@ -25,7 +26,6 @@ export class JourneyWrapperComponent {
   styleUrls: ['./journey.component.css']
 })
 export class JourneyComponent implements OnInit, OnDestroy {
-
   imports: [LeafletModule];
 
   leafletDirective: LeafletDirective;
@@ -36,9 +36,13 @@ export class JourneyComponent implements OnInit, OnDestroy {
   path: L.Polyline;
   markers: L.Marker[];
 
-  constructor(leafletDirective: LeafletDirective, private sampleService: SampleService, private mapServiceService: MapServiceService) {
-      this.leafletDirective = leafletDirective;
-    }
+  constructor(
+    leafletDirective: LeafletDirective,
+    private sampleService: SampleService,
+    private mapServiceService: MapServiceService
+  ) {
+    this.leafletDirective = leafletDirective;
+  }
 
   ngOnInit() {
     this.map = this.leafletDirective.getMap();
@@ -55,8 +59,9 @@ export class JourneyComponent implements OnInit, OnDestroy {
     this.markers = [];
 
     // Subscribe sample data
-    this.subscription = this.sampleService.getSampleSubject()
-    .subscribe((sample) => {
+    this.subscription = this.sampleService
+      .getSampleSubject()
+      .subscribe(sample => {
         this.addToPath(sample);
       });
   }
@@ -66,14 +71,24 @@ export class JourneyComponent implements OnInit, OnDestroy {
     const latlng = L.latLng([sample.lat, sample.long]);
     this.path.addLatLng(latlng);
     // Add marker with popup
-    const marker = L.marker(latlng).bindPopup(JSON.stringify(sample, null, '\t'), { offset: L.point(0, 0) });
-    marker.on('mouseover', () => { marker.openPopup(); }); marker.on('mouseout', () => { marker.closePopup(); });
-    marker.setIcon(L.icon({
-      iconSize: [ 20, 20 ],
-      iconUrl: 'leaflet/marker-icon.png',
-      className: 'invisible_marker_icon'
-      // shadowUrl: 'leaflet/marker-shadow.png'
-    }));
+    const marker = L.marker(latlng).bindPopup(
+      JSON.stringify(sample, null, '\t'),
+      { offset: L.point(0, 0) }
+    );
+    marker.on('mouseover', () => {
+      marker.openPopup();
+    });
+    marker.on('mouseout', () => {
+      marker.closePopup();
+    });
+    marker.setIcon(
+      L.icon({
+        iconSize: [20, 20],
+        iconUrl: 'leaflet/marker-icon.png',
+        className: 'invisible_marker_icon'
+        // shadowUrl: 'leaflet/marker-shadow.png'
+      })
+    );
     marker.addTo(this.map);
     this.markers.push(marker);
   }

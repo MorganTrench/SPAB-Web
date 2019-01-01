@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import * as L from 'leaflet';
 import { LeafletModule, LeafletDirective } from '@asymmetrik/ngx-leaflet';
 
-
 @Injectable({
   providedIn: 'root'
 })
@@ -13,7 +12,7 @@ export class MapServiceService {
   leafletProviderKey = 'OpenStreetMap.HOT'; // 'Esri.OceanBasemap';
 
   constructor() {
-    this.viewLocation = L.latLng([ -31.9505, 115.8605 ]);
+    this.viewLocation = L.latLng([-31.9505, 115.8605]);
     this.zoomLevel = 10;
   }
 
@@ -28,6 +27,10 @@ export class MapServiceService {
   setupMap(map: L.Map) {
     // Load and configure map
     map.setView(this.viewLocation, this.zoomLevel, null);
-    L.tileLayer.provider('OpenStreetMap.Mapnik', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+    L.tileLayer
+      .provider('OpenStreetMap.Mapnik', {
+        attribution: '&copy; OpenStreetMap contributors'
+      })
+      .addTo(map);
   }
 }
