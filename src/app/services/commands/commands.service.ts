@@ -10,8 +10,11 @@ export class CommandsService {
 
   constructor() {
     this.nextId = null;
-    this.commands = [];
-    // TOD0: Get commands and next id from server
+    this.commands = [
+      new Command('goto', -31.94813186034272, 115.866),
+      new Command('goto', -31.9, 115.9),
+      new Command('goto', -31.85, 115.85)
+    ]; // TOD0: Get commands and next id from server, for now we'll fake it
   }
 
   setCommands(newCommands: Command[]) {

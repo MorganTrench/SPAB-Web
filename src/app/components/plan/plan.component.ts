@@ -1,29 +1,24 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { LeafletModule, LeafletDirective } from '@asymmetrik/ngx-leaflet';
-import {
-  LeafletMouseEvent,
-  Map as LeafetMap,
-  LatLng,
-  marker as makeMarker,
-  icon,
-  Polyline,
-  polyline,
-  point,
-  LeafletEvent,
-  Marker
-} from 'leaflet';
+import { LeafletDrawDirective } from '@asymmetrik/ngx-leaflet-draw';
+import * as L from 'leaflet';
+import 'leaflet-draw';
+import 'leaflet-toolbar';
 import { MapServiceService } from '../../services/map-service/map-service.service';
 import {
   Command,
   CommandsService
 } from 'src/app/services/commands/commands.service';
-import { SampleService, Sample } from 'src/app/services/sample/sample.service';
+import { Sample, SampleService } from 'src/app/services/sample/sample.service';
+import { map } from 'rxjs/operators';
 
 @Component({
   template:
-    '<div leaflet ' +
+    '<div leaflet leafletDraw ' +
+    // '<div leaflet ' +
     '[(leafletCenter)]="mapService.viewLocation"' +
     '[(leafletZoom)]="mapService.zoomLevel" ' +
+    '[leafletDrawOptions]="mapService.drawOptions" ' +
     'app-plan></div>'
 })
 export class PlanWrapperComponent {
@@ -40,101 +35,102 @@ export class PlanWrapperComponent {
 })
 export class PlanComponent implements OnInit {
   imports: [LeafletModule];
-  leafletDirective: LeafletDirective;
-  map: LeafetMap;
+  map: L.Map;
+  drawControl: L.Control.Draw;
 
-  currentLatLng: LatLng;
-  traveledPath: Polyline;
+  currentLatLng: L.LatLng;
+  traveledPath: L.Polyline;
 
-  plannedPath: Polyline;
-  waypoints: Marker[];
+  waypoints: L.LatLng[];
   commands: Command[];
-  lookup: Map<Marker, Command>;
+  lookup: Map<L.Marker, Command>;
+
+  path: L.Polyline; // Previous path
+  setLine: L.Polyline; // Current set plan
+  planingLine: L.Draw.Polyline; // Plan we are creating/editing
 
   constructor(
-    leafletDirective: LeafletDirective,
+    private leafletDirective: LeafletDirective,
+    private leafletDrawDirective: LeafletDrawDirective,
     private mapServiceService: MapServiceService,
     private commandService: CommandsService,
     private sampleService: SampleService
   ) {
-    this.leafletDirective = leafletDirective;
     this.commands = commandService.getCommands();
     this.lookup = new Map();
-    this.traveledPath = polyline([], {
+    this.traveledPath = new L.Polyline([], {
       color: 'red',
       weight: 3,
       opacity: 0.5,
       smoothFactor: 1
     });
-    this.plannedPath = polyline([], {
-      color: 'blue',
-      weight: 3,
-      opacity: 0.5,
-      smoothFactor: 1
-    });
 
-    this.currentLatLng = new LatLng(0, 0, 0);
-    this.waypoints = [];
+    this.currentLatLng = new L.LatLng(0, 0, 0);
   }
 
   ngOnInit() {
     // Map setup
     this.map = this.leafletDirective.getMap();
+    this.drawControl = this.leafletDrawDirective.drawControl;
     this.traveledPath.addTo(this.map);
-    this.plannedPath.addTo(this.map);
-
-    // Generate waypoints from current commands
-    this.commands.forEach(command => {
-      this.addWaypointAt(new LatLng(command.lat, command.long), command);
-    });
-    this.map.on('click', (mouseEvent: LeafletMouseEvent) => {
-      this.addWaypointAt(mouseEvent.latlng, null);
-    });
     this.mapServiceService.setupMap(this.map);
     setInterval(() => {
       this.commit();
     }, 2 * 1000);
 
-    this.sampleService.getSampleSubject().subscribe(sample => {
-      this.traveledPath.addLatLng(new LatLng(sample.lat, sample.long));
-      this.currentLatLng = new LatLng(sample.lat, sample.long);
-      this.plannedPath.setLatLngs(this.generatePathLatLngs());
+    // Listen for finished polyline paths
+    this.map.on(L.Draw.Event.CREATED, e => {
+      if (e.type === 'polyline') {
+        const polyline = e.layer;
+        console.log(polyline._latlngs);
+      }
     });
-  }
 
-  addWaypointAt(loc: LatLng, command: Command) {
-    const marker = makeMarker(loc, { draggable: true });
-    marker.setIcon(
-      icon({
-        iconUrl: 'leaflet/marker-icon.png',
-        shadowUrl: 'leaflet/marker-shadow.png',
-        iconAnchor: point(12.5, 40)
-      })
+    // Setup display of current plan
+    this.setLine = new L.Polyline(
+      this.commands.map(cmd => new L.LatLng(cmd.lat, cmd.long))
     );
-    marker.on('move', (event: LeafletEvent) => {
-      this.plannedPath.setLatLngs(this.generatePathLatLngs());
-      const corresponding = this.lookup.get(marker);
-      corresponding.lat = marker.getLatLng().lat;
-      corresponding.long = marker.getLatLng().lng;
+    this.setLine.addTo(this.map);
+
+    // Control bar for each device
+    const spabEdit = L.Toolbar2.Action.extend({
+      options: {
+        toolbarIcon: {
+          html: '<div>Edit</div>',
+          tooltip: 'Edit the SPAB Route'
+        }
+      },
+      addHooks: () => {
+        /*this.plan.enable();*/
+      }
     });
-    marker.on('dblclick', () => {
-      marker.removeFrom(this.map);
-      this.waypoints.splice(this.waypoints.indexOf(marker), 1);
-      this.plannedPath.setLatLngs(this.generatePathLatLngs());
-      this.commands.splice(this.commands.indexOf(this.lookup.get(marker)), 1);
+    const spabControls = L.Toolbar2.Action.extend({
+      options: {
+        toolbarIcon: {
+          html: '<div>SPAB</div>',
+          tooltip: "Manipulate the SPAB's future routes"
+        },
+        subToolbar: new L.Toolbar2.Control({
+          actions: [spabEdit]
+        })
+      },
+      addHooks: () => {
+        /*this.plan.enable();*/
+      }
     });
-    marker.addTo(this.map);
-    this.waypoints.push(marker);
-    this.plannedPath.setLatLngs(this.generatePathLatLngs());
-    if (command == null) {
-      command = new Command('moveTo', loc.lat, loc.lng);
-      this.commands.push(command);
-    }
-    this.lookup.set(marker, command);
+
+    const controlBar = new L.Toolbar2.Control({
+      position: 'topleft',
+      actions: [spabControls]
+    });
+    controlBar.addTo(this.map);
+
+    // Generate waypoints from current commands
+    this.commands.forEach(command => {});
   }
 
-  private generatePathLatLngs(): Array<LatLng> {
-    const pathLatLngs = this.waypoints.map(wp => wp.getLatLng());
+  private generatePathLatLngs(): Array<L.LatLng> {
+    const pathLatLngs = this.waypoints.slice();
     pathLatLngs.unshift(this.currentLatLng);
     return pathLatLngs;
   }

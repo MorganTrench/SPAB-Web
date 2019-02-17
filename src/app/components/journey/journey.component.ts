@@ -2,7 +2,6 @@ import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { LeafletModule, LeafletDirective } from '@asymmetrik/ngx-leaflet';
 import { SampleService, Sample } from '../../services/sample/sample.service';
 import { Subscription } from 'rxjs';
-import { latLng } from 'leaflet';
 import * as L from 'leaflet';
 import 'leaflet-providers'; // attaches a 'provider' function to L.tileLayer
 import { MapServiceService } from '../../services/map-service/map-service.service';

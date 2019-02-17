@@ -8,12 +8,14 @@ import { LeafletModule, LeafletDirective } from '@asymmetrik/ngx-leaflet';
 export class MapServiceService {
   viewLocation: L.LatLngLiteral;
   zoomLevel: number;
+  drawOptions: any;
 
   leafletProviderKey = 'OpenStreetMap.HOT'; // 'Esri.OceanBasemap';
 
   constructor() {
     this.viewLocation = L.latLng([-31.9505, 115.8605]);
     this.zoomLevel = 10;
+    this.drawOptions = { draw: false };
   }
 
   getViewLocation(): L.LatLngLiteral {

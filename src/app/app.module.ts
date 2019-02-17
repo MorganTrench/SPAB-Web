@@ -6,8 +6,14 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
 // Leaflet
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
+import { LeafletDrawModule } from '@asymmetrik/ngx-leaflet-draw';
 // Angular Material
-import { MatButtonModule, MatToolbarModule, MatCardModule, MatProgressBarModule } from '@angular/material';
+import {
+  MatButtonModule,
+  MatToolbarModule,
+  MatCardModule,
+  MatProgressBarModule
+} from '@angular/material';
 // Angular Flex
 import { FlexLayoutModule } from '@angular/flex-layout';
 
@@ -16,8 +22,14 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { AppRoutingModule } from './app-routing.module';
 // Component
 import { AppComponent } from './app.component';
-import { JourneyComponent, JourneyWrapperComponent } from './components/journey/journey.component';
-import { PlanComponent, PlanWrapperComponent } from './components/plan/plan.component';
+import {
+  JourneyComponent,
+  JourneyWrapperComponent
+} from './components/journey/journey.component';
+import {
+  PlanComponent,
+  PlanWrapperComponent
+} from './components/plan/plan.component';
 import { SensorsComponent } from './components/sensors/sensors.component';
 import { StatusComponent } from './components/status/status.component';
 // Services
@@ -41,6 +53,7 @@ import { SampleService } from './services/sample/sample.service';
     HttpClientModule,
     // Leaflet
     LeafletModule.forRoot(),
+    LeafletDrawModule.forRoot(),
     // Material
     MatButtonModule,
     MatToolbarModule,
@@ -53,4 +66,4 @@ import { SampleService } from './services/sample/sample.service';
   providers: [MapServiceService, SampleService],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}
