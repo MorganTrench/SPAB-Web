@@ -33,7 +33,9 @@
     "leaflet-draw": "^1.0.4",
     "leaflet-providers": "^1.4.0",
     "leaflet-toolbar": "^0.4.0-alpha.1",
+    "ngx-socket-io": "^2.1.1",
     "rxjs": "^6.3.3",
+    "socket.io-client": "^2.2.0",
     "zone.js": "^0.8.26"
   },
   "devDependencies": {

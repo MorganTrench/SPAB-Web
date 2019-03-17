@@ -53,6 +53,7 @@ export class SensorsComponent implements OnInit, OnDestroy {
         if (this.tempGraph != null) {
           this.tempGraph.updateOptions({ file: this.tempData });
         } else {
+          console.log(this.tempData);
           this.tempGraph = new Dygraph(
             this.tempGraphElem.nativeElement,
             this.tempData,

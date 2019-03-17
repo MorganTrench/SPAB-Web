@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ReplaySubject, BehaviorSubject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { Socket } from 'ngx-socket-io';
 
 @Injectable({
   providedIn: 'root'
@@ -11,10 +12,11 @@ export class SampleService {
   // This variable only exists for generating dummy data
   currentVal: Sample;
 
+  salinity = 15.0;
   batteryCapacity = 24000;
   periodMs = 120 * 1000.0 * 4;
 
-  constructor() {
+  constructor(private socket: Socket, private http: HttpClient) {
     this.currentVal = new Sample(
       new Date(),
       -31.9505,
@@ -25,33 +27,41 @@ export class SampleService {
     );
     this.RS = new ReplaySubject();
 
-    setInterval(() => {
-      // time and position
-      this.currentVal.timestamp = new Date();
-      const angle = 2 * Math.PI * Math.random();
-      const dist = 0.01 * Math.random();
-      const dx = dist * Math.cos(angle);
-      let dy = dist * Math.sin(angle);
-      if (dy > 0) {
-        dy = -dy;
-      }
-      this.currentVal.lat += dx;
-      this.currentVal.long += dy;
+    http
+      .get('http://localhost:3000/api/data')
+      .subscribe((samples: Array<any>) => {
+        console.log(samples);
+        samples.forEach(sampleData => {
+          const power = this.calcNextPower();
+          const salinity = this.calcNextSalinity();
+          const valid = Sample.validateFields(
+            sampleData.timestamp,
+            sampleData.latitude,
+            sampleData.longitude,
+            sampleData.temperature,
+            power,
+            salinity
+          );
+          if (valid) {
+            const sample = new Sample(
+              new Date(sampleData.timestamp),
+              sampleData.latitude,
+              sampleData.longitude,
+              sampleData.temperature,
+              power,
+              salinity
+            );
+            this.currentVal = sample;
+            this.RS.next(sample);
+          }
+        });
+      });
 
-      // Temperature
-      this.currentVal.temp +=
-        Math.random() > 0.5 ? 0.25 * Math.random() : -0.25 * Math.random();
-
-      // Salinity
-      this.currentVal.salinity +=
-        Math.random() > 0.5 ? 0.25 * Math.random() : -0.25 * Math.random();
-      this.currentVal.salinity =
-        this.currentVal.salinity < 20 ? 20 : this.currentVal.salinity;
-      this.currentVal.salinity =
-        this.currentVal.salinity < 20 ? 20 : this.currentVal.salinity;
+    socket.on('sample_received', sample => {
+      console.log(sample);
 
       // Power
-      this.currentVal.power = Math.abs(
+      let power = Math.abs(
         this.batteryCapacity *
           Math.cos(
             ((this.currentVal.timestamp.getTime() % this.periodMs) /
@@ -61,16 +71,52 @@ export class SampleService {
               Math.PI
           )
       );
-      this.currentVal.power = Math.max(
-        this.currentVal.power,
-        this.batteryCapacity * 0.02
+      power = Math.max(this.currentVal.power, this.batteryCapacity * 0.02);
+
+      // Salinity
+      this.salinity +=
+        Math.random() > 0.5 ? 0.25 * Math.random() : -0.25 * Math.random();
+      this.salinity = this.salinity < 20 ? 20 : this.salinity;
+      this.salinity = this.salinity < 20 ? 20 : this.salinity;
+
+      this.currentVal = new Sample(
+        new Date(sample.timestamp),
+        sample.latitude,
+        sample.longitude,
+        sample.temperate,
+        power,
+        this.salinity
       );
       this.RS.next({ ...this.currentVal });
-    }, 0.5 * 1000);
+    });
   }
 
   getSampleSubject(): ReplaySubject<Sample> {
     return this.RS;
+  }
+
+  private calcNextSalinity(): number {
+    this.salinity +=
+      Math.random() > 0.5 ? 0.25 * Math.random() : -0.25 * Math.random();
+    this.salinity = this.salinity < 20 ? 20 : this.salinity;
+    this.salinity = this.salinity < 20 ? 20 : this.salinity;
+    return this.salinity;
+  }
+
+  private calcNextPower(): number {
+    // Power
+    let power = Math.abs(
+      this.batteryCapacity *
+        Math.cos(
+          ((this.currentVal.timestamp.getTime() % this.periodMs) /
+            this.periodMs +
+            Math.random() * 0.005) *
+            2 *
+            Math.PI
+        )
+    );
+    power = Math.max(this.currentVal.power, this.batteryCapacity * 0.02);
+    return power;
   }
 }
 
@@ -89,5 +135,22 @@ export class Sample {
     this.temp = temp;
     this.power = power;
     this.salinity = salinity;
+  }
+  static validateFields(
+    timestamp: any,
+    lat: any,
+    long: any,
+    temp: any,
+    power: any,
+    salinity: any
+  ) {
+    return (
+      timestamp != null &&
+      lat != null &&
+      long != null &&
+      temp != null &&
+      power != null &&
+      salinity != null
+    );
   }
 }

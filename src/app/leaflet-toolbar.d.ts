@@ -3,7 +3,7 @@ import * as L from 'leaflet';
 declare module 'leaflet' {
   namespace Toolbar2 {
     class Control {
-      constructor(obj: { position?: String; actions: [Action] });
+      constructor(obj: { position?: String; actions: Action[] });
       addTo(map: L.Map);
     }
 
@@ -17,7 +17,7 @@ declare module 'leaflet' {
           };
           subToolbar?: L.Toolbar2.Control;
         };
-        addHooks: () => void;
+        addHooks?: () => void;
       }): Action;
     }
   }

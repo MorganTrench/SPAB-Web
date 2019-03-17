@@ -16,6 +16,12 @@ import {
 } from '@angular/material';
 // Angular Flex
 import { FlexLayoutModule } from '@angular/flex-layout';
+// Socket.io
+import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
+const socket_io_config: SocketIoConfig = {
+  url: 'http://localhost:3000',
+  options: {}
+};
 
 /* Custom */
 // Modules
@@ -61,7 +67,9 @@ import { SampleService } from './services/sample/sample.service';
     MatCardModule,
     MatProgressBarModule,
     // Flex
-    FlexLayoutModule
+    FlexLayoutModule,
+    // Socket.io
+    SocketIoModule.forRoot(socket_io_config)
   ],
   providers: [MapServiceService, SampleService],
   bootstrap: [AppComponent]

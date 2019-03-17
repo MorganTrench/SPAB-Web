@@ -11,6 +11,7 @@ import {
 } from 'src/app/services/commands/commands.service';
 import { Sample, SampleService } from 'src/app/services/sample/sample.service';
 import { map } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 @Component({
   template:
@@ -39,15 +40,17 @@ export class PlanComponent implements OnInit {
   drawControl: L.Control.Draw;
 
   currentLatLng: L.LatLng;
-  traveledPath: L.Polyline;
 
   waypoints: L.LatLng[];
   commands: Command[];
-  lookup: Map<L.Marker, Command>;
 
   path: L.Polyline; // Previous path
   setLine: L.Polyline; // Current set plan
   planingLine: L.Draw.Polyline; // Plan we are creating/editing
+
+  sampleSubscription: Subscription;
+
+  state: String;
 
   constructor(
     private leafletDirective: LeafletDirective,
@@ -57,22 +60,14 @@ export class PlanComponent implements OnInit {
     private sampleService: SampleService
   ) {
     this.commands = commandService.getCommands();
-    this.lookup = new Map();
-    this.traveledPath = new L.Polyline([], {
-      color: 'red',
-      weight: 3,
-      opacity: 0.5,
-      smoothFactor: 1
-    });
-
     this.currentLatLng = new L.LatLng(0, 0, 0);
+    this.state = 'view';
   }
 
   ngOnInit() {
     // Map setup
     this.map = this.leafletDirective.getMap();
     this.drawControl = this.leafletDrawDirective.drawControl;
-    this.traveledPath.addTo(this.map);
     this.mapServiceService.setupMap(this.map);
     setInterval(() => {
       this.commit();
@@ -81,23 +76,42 @@ export class PlanComponent implements OnInit {
     // Listen for finished polyline paths
     this.map.on(L.Draw.Event.CREATED, e => {
       if (e.type === 'polyline') {
-        const polyline = e.layer;
-        console.log(polyline._latlngs);
+        // const polyline = e.layer;
+        // console.log(polyline._latlngs);
       }
     });
 
     // Setup display of current plan
-    this.setLine = new L.Polyline(
-      this.commands.map(cmd => new L.LatLng(cmd.lat, cmd.long))
-    );
-    this.setLine.addTo(this.map);
+    this.refreshSetPlanLine();
 
     // Control bar for each device
+    const spabClear = L.Toolbar2.Action.extend({
+      options: {
+        toolbarIcon: {
+          html: '<div>Clear</div>',
+          tooltip: 'Clear the SPAB Route'
+        }
+      },
+      addHooks: () => {
+        /*this.plan.enable();*/
+      }
+    });
     const spabEdit = L.Toolbar2.Action.extend({
       options: {
         toolbarIcon: {
-          html: '<div>Edit</div>',
-          tooltip: 'Edit the SPAB Route'
+          html: '<div>Modify</div>',
+          tooltip: 'Edit the existing SPAB Route'
+        }
+      },
+      addHooks: () => {
+        /*this.plan.enable();*/
+      }
+    });
+    const spabAppend = L.Toolbar2.Action.extend({
+      options: {
+        toolbarIcon: {
+          html: '<div>Append</div>',
+          tooltip: 'Create/Replace the SPAB Route'
         }
       },
       addHooks: () => {
@@ -108,10 +122,11 @@ export class PlanComponent implements OnInit {
       options: {
         toolbarIcon: {
           html: '<div>SPAB</div>',
+          // tslint:disable-next-line:quotemark
           tooltip: "Manipulate the SPAB's future routes"
         },
         subToolbar: new L.Toolbar2.Control({
-          actions: [spabEdit]
+          actions: [spabAppend, spabEdit, spabClear]
         })
       },
       addHooks: () => {
@@ -127,12 +142,49 @@ export class PlanComponent implements OnInit {
 
     // Generate waypoints from current commands
     this.commands.forEach(command => {});
+
+    // Subscribe sample data
+    this.sampleSubscription = this.sampleService
+      .getSampleSubject()
+      .subscribe(sample => {
+        this.currentLatLng = new L.LatLng(sample.lat, sample.long);
+        if (this.state === 'view') {
+          // Update the set plan line with a new current position
+          this.refreshSetPlanLine();
+        } else {
+          // Move first point in editing line
+          this.refreshEditablePlanLine();
+        }
+      });
   }
 
-  private generatePathLatLngs(): Array<L.LatLng> {
-    const pathLatLngs = this.waypoints.slice();
-    pathLatLngs.unshift(this.currentLatLng);
-    return pathLatLngs;
+  private refreshSetPlanLine() {
+    // Remove previous line if it exists
+    if (this.setLine) {
+      this.setLine.removeFrom(this.map);
+    }
+    // Create a new setline, add it to map
+    this.setLine = new L.Polyline(
+      this.commands.reduce(
+        (acc, cmd) => acc.concat([new L.LatLng(cmd.lat, cmd.long)]),
+        [this.currentLatLng]
+      )
+    );
+    this.setLine.addTo(this.map);
+  }
+
+  private refreshEditablePlanLine() {
+    // Old line points
+    // const latLngs = this.planingLine._markers.map(x => x.getLatLng());
+    // latLngs.splice(0, 1, this.currentLatLng);
+    console.log(this.setLine.getLatLngs());
+
+    // const latLngs = this.setLine.getLatLngs();
+    // latLngs.splice(0, 1, this.currentLatLng);
+
+    // this.setLine.removeFrom(this.map);
+
+    // this.setLine = new
   }
 
   commit() {
