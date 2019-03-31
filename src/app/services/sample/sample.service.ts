@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ReplaySubject, BehaviorSubject } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Socket } from 'ngx-socket-io';
 
 @Injectable({
@@ -16,7 +16,9 @@ export class SampleService {
   batteryCapacity = 24000;
   periodMs = 120 * 1000.0 * 4;
 
-  constructor(private socket: Socket, private http: HttpClient) {
+  private sourceUrl = 'http://therevproject.com/solarboat/api/data.cgi';
+
+  constructor(private http: HttpClient) {
     this.currentVal = new Sample(
       new Date(),
       -31.9505,
@@ -27,67 +29,51 @@ export class SampleService {
     );
     this.RS = new ReplaySubject();
 
-    http
-      .get('http://localhost:3000/api/data')
-      .subscribe((samples: Array<any>) => {
-        console.log(samples);
-        samples.forEach(sampleData => {
-          const power = this.calcNextPower();
-          const salinity = this.calcNextSalinity();
-          const valid = Sample.validateFields(
-            sampleData.timestamp,
-            sampleData.latitude,
-            sampleData.longitude,
-            sampleData.temperature,
-            power,
-            salinity
-          );
-          if (valid) {
-            const sample = new Sample(
-              new Date(sampleData.timestamp),
-              sampleData.latitude,
-              sampleData.longitude,
-              sampleData.temperature,
-              power,
-              salinity
-            );
-            this.currentVal = sample;
-            this.RS.next(sample);
-          }
-        });
-      });
+    http.get(this.sourceUrl).subscribe((samples: Array<any>) => {
+      this.processData(samples);
+      setInterval(() => {
+        this.http
+          .get(this.sourceUrl, {
+            params: new HttpParams().set(
+              'fromTimestamp',
+              this.currentVal.timestamp.getMilliseconds().toString()
+            )
+          })
+          .subscribe((newSamples: Array<any>) => {
+            if (newSamples && newSamples.length > 0) {
+              this.processData(newSamples);
+            }
+          });
+      }, 2500);
+    });
+  }
 
-    socket.on('sample_received', sample => {
-      console.log(sample);
-
-      // Power
-      let power = Math.abs(
-        this.batteryCapacity *
-          Math.cos(
-            ((this.currentVal.timestamp.getTime() % this.periodMs) /
-              this.periodMs +
-              Math.random() * 0.005) *
-              2 *
-              Math.PI
-          )
-      );
-      power = Math.max(this.currentVal.power, this.batteryCapacity * 0.02);
-
-      // Salinity
-      this.salinity +=
-        Math.random() > 0.5 ? 0.25 * Math.random() : -0.25 * Math.random();
-      this.salinity = this.salinity < 20 ? 20 : this.salinity;
-      this.salinity = this.salinity < 20 ? 20 : this.salinity;
-
-      this.currentVal = new Sample(
-        new Date(sample.timestamp),
-        sample.latitude,
-        sample.longitude,
-        sample.temperate,
+  private processData(samples: Array<any>) {
+    console.log('New sample data: ');
+    console.log(samples);
+    samples.forEach(sampleData => {
+      const power = this.calcNextPower();
+      const salinity = this.calcNextSalinity();
+      const valid = Sample.validateFields(
+        sampleData.timestamp,
+        sampleData.latitude,
+        sampleData.longitude,
+        sampleData.temperature,
         power,
-        this.salinity
+        salinity
       );
-      this.RS.next({ ...this.currentVal });
+      if (valid) {
+        const sample = new Sample(
+          new Date(sampleData.timestamp),
+          sampleData.latitude,
+          sampleData.longitude,
+          sampleData.temperature,
+          power,
+          salinity
+        );
+        this.currentVal = sample;
+        this.RS.next(sample);
+      }
     });
   }
 

@@ -5,6 +5,7 @@ declare module 'leaflet' {
     class Control {
       constructor(obj: { position?: String; actions: Action[] });
       addTo(map: L.Map);
+      _hide();
     }
 
     class Action {
