@@ -40,17 +40,14 @@ export class PlanComponent implements OnInit {
   drawControl: L.Control.Draw;
 
   currentLatLng: L.LatLng;
-
-  waypoints: L.LatLng[];
   commands: Command[];
 
-  path: L.Polyline; // Previous path
   setLine: L.Polyline; // Current set plan
   planingLine: L.Draw.Polyline; // Plan we are creating/editing
 
   sampleSubscription: Subscription;
 
-  state: String;
+  state: String; // either 'view' or 'edit'
 
   constructor(
     private leafletDirective: LeafletDirective,
@@ -59,7 +56,7 @@ export class PlanComponent implements OnInit {
     private commandService: CommandsService,
     private sampleService: SampleService
   ) {
-    this.commands = commandService.getCommands();
+    this.commands = null;
     this.currentLatLng = new L.LatLng(0, 0, 0);
     this.state = 'view';
   }
@@ -69,20 +66,24 @@ export class PlanComponent implements OnInit {
     this.map = this.leafletDirective.getMap();
     this.drawControl = this.leafletDrawDirective.drawControl;
     this.mapServiceService.setupMap(this.map);
-    setInterval(() => {
-      this.commit();
-    }, 2 * 1000);
 
     // Listen for finished polyline paths
     this.map.on(L.Draw.Event.CREATED, e => {
+      console.log(e);
       if (e.type === 'polyline') {
         // const polyline = e.layer;
         // console.log(polyline._latlngs);
       }
     });
+    this.map.on(L.Draw.Event.EDITED, console.log);
+    this.map.on(L.Draw.Event.EDITSTART, console.log);
 
-    // Setup display of current plan
-    this.refreshSetPlanLine();
+    this.commandService.getCommandSubject().subscribe(commands => {
+      console.log(commands)
+      this.commands = commands
+      // Setup display of current plan
+      this.refreshSetPlanLine();
+    });
 
     // Control bar for each device
     const spabClear = L.Toolbar2.Action.extend({
@@ -94,6 +95,7 @@ export class PlanComponent implements OnInit {
       },
       addHooks: () => {
         /*this.plan.enable();*/
+        subToolbar._hide();
       }
     });
     const spabEdit = L.Toolbar2.Action.extend({
@@ -104,7 +106,14 @@ export class PlanComponent implements OnInit {
         }
       },
       addHooks: () => {
-        /*this.plan.enable();*/
+        // @ts-ignore
+        this.planingLine = this.setLine.editing.enable();
+        console.log(this.planingLine);
+        setTimeout(() => {
+          let test = this.planingLine.disable()
+          console.log(test)
+        }, 5000)
+        subToolbar._hide();
       }
     });
     const spabAppend = L.Toolbar2.Action.extend({
@@ -115,9 +124,19 @@ export class PlanComponent implements OnInit {
         }
       },
       addHooks: () => {
-        /*this.plan.enable();*/
+        this.planingLine = new L.Draw.Polyline(this.map, {});
+        this.planingLine.enable();
+        this.commandService.commands.forEach(cmd => {
+          this.planingLine.addVertex(new L.LatLng(cmd.latitude, cmd.longitude));
+        });
+        subToolbar._hide();
       }
     });
+
+    const subToolbar = new L.Toolbar2.Control({
+      actions: [spabAppend, spabEdit, spabClear]
+    });
+
     const spabControls = L.Toolbar2.Action.extend({
       options: {
         toolbarIcon: {
@@ -125,9 +144,7 @@ export class PlanComponent implements OnInit {
           // tslint:disable-next-line:quotemark
           tooltip: "Manipulate the SPAB's future routes"
         },
-        subToolbar: new L.Toolbar2.Control({
-          actions: [spabAppend, spabEdit, spabClear]
-        })
+        subToolbar: subToolbar
       },
       addHooks: () => {
         /*this.plan.enable();*/
@@ -139,9 +156,6 @@ export class PlanComponent implements OnInit {
       actions: [spabControls]
     });
     controlBar.addTo(this.map);
-
-    // Generate waypoints from current commands
-    this.commands.forEach(command => {});
 
     // Subscribe sample data
     this.sampleSubscription = this.sampleService
@@ -163,14 +177,16 @@ export class PlanComponent implements OnInit {
     if (this.setLine) {
       this.setLine.removeFrom(this.map);
     }
-    // Create a new setline, add it to map
-    this.setLine = new L.Polyline(
-      this.commands.reduce(
-        (acc, cmd) => acc.concat([new L.LatLng(cmd.lat, cmd.long)]),
-        [this.currentLatLng]
-      )
-    );
-    this.setLine.addTo(this.map);
+    if (this.commands != null){
+      // Create a new setline, add it to map
+      this.setLine = new L.Polyline(
+        this.commands.reduce(
+          (acc, cmd) => acc.concat([new L.LatLng(cmd.latitude, cmd.longitude)]),
+          [this.currentLatLng]
+        )
+      );
+      this.setLine.addTo(this.map);
+    }
   }
 
   private refreshEditablePlanLine() {
@@ -187,7 +203,7 @@ export class PlanComponent implements OnInit {
     // this.setLine = new
   }
 
-  commit() {
-    this.commandService.setCommands(this.commands);
-  }
+  // commit() {
+  //   this.commandService.setCommands(this.commands);
+  // }
 }

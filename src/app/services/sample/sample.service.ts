@@ -36,7 +36,7 @@ export class SampleService {
           .get(this.sourceUrl, {
             params: new HttpParams().set(
               'fromTimestamp',
-              this.currentVal.timestamp.getMilliseconds().toString()
+              `${this.currentVal.timestamp.getTime()}`
             )
           })
           .subscribe((newSamples: Array<any>) => {
@@ -49,8 +49,8 @@ export class SampleService {
   }
 
   private processData(samples: Array<any>) {
-    console.log('New sample data: ');
-    console.log(samples);
+    console.log('new data:', samples)
+    samples.reverse(); // We recieve the data ordered with the most recent values first, we want to process them chronologically
     samples.forEach(sampleData => {
       const power = this.calcNextPower();
       const salinity = this.calcNextSalinity();
