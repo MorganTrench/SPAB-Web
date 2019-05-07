@@ -15,7 +15,7 @@ export class MapServiceService {
   constructor() {
     this.viewLocation = L.latLng([-31.9505, 115.8605]);
     this.zoomLevel = 10;
-    this.drawOptions = { draw: false };
+    this.drawOptions = { draw: false /*, edit: false*/ };
   }
 
   getViewLocation(): L.LatLngLiteral {

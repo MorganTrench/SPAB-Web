@@ -23,7 +23,7 @@ import { Subscription } from 'rxjs';
     'app-plan></div>'
 })
 export class PlanWrapperComponent {
-  constructor(public mapService: MapServiceService) {}
+  constructor(public mapService: MapServiceService) { }
 }
 
 @Component({
@@ -43,7 +43,7 @@ export class PlanComponent implements OnInit {
   commands: Command[];
 
   setLine: L.Polyline; // Current set plan
-  planingLine: L.Draw.Polyline; // Plan we are creating/editing
+  planingLine: any; // Plan we are creating/editing
 
   sampleSubscription: Subscription;
 
@@ -67,23 +67,11 @@ export class PlanComponent implements OnInit {
     this.drawControl = this.leafletDrawDirective.drawControl;
     this.mapServiceService.setupMap(this.map);
 
-    // Listen for finished polyline paths
-    this.map.on(L.Draw.Event.CREATED, e => {
-      console.log(e);
-      if (e.type === 'polyline') {
-        // const polyline = e.layer;
-        // console.log(polyline._latlngs);
-      }
-    });
     this.map.on(L.Draw.Event.EDITED, console.log);
     this.map.on(L.Draw.Event.EDITSTART, console.log);
+    this.map.on(L.Draw.Event.EDITSTOP, console.log);
 
-    this.commandService.getCommandSubject().subscribe(commands => {
-      console.log(commands)
-      this.commands = commands
-      // Setup display of current plan
-      this.refreshSetPlanLine();
-    });
+    this.refreshCommands()
 
     // Control bar for each device
     const spabClear = L.Toolbar2.Action.extend({
@@ -94,8 +82,7 @@ export class PlanComponent implements OnInit {
         }
       },
       addHooks: () => {
-        /*this.plan.enable();*/
-        subToolbar._hide();
+        controlSubToolbar._hide();
       }
     });
     const spabEdit = L.Toolbar2.Action.extend({
@@ -108,12 +95,7 @@ export class PlanComponent implements OnInit {
       addHooks: () => {
         // @ts-ignore
         this.planingLine = this.setLine.editing.enable();
-        console.log(this.planingLine);
-        setTimeout(() => {
-          let test = this.planingLine.disable()
-          console.log(test)
-        }, 5000)
-        subToolbar._hide();
+        controlSubToolbar._hide();
       }
     });
     const spabAppend = L.Toolbar2.Action.extend({
@@ -126,34 +108,106 @@ export class PlanComponent implements OnInit {
       addHooks: () => {
         this.planingLine = new L.Draw.Polyline(this.map, {});
         this.planingLine.enable();
-        this.commandService.commands.forEach(cmd => {
+        this.commands.forEach(cmd => {
           this.planingLine.addVertex(new L.LatLng(cmd.latitude, cmd.longitude));
         });
-        subToolbar._hide();
+        controlSubToolbar._hide();
       }
     });
 
-    const subToolbar = new L.Toolbar2.Control({
+
+    const commitHook = () => {
+      saveSubToolbar._hide();
+      // The two different editing methods result in two different types of line, handles those here
+      if (this.planingLine) {
+        if (this.planingLine.disable) this.planingLine.disable()
+        if (this.planingLine.latlngs) {
+          this.commands = this.planingLine.latlngs[0].map((x: L.LatLng) => { /* tslint:disable */
+            return new Command('moveTo', x.lat, x.lng, 0)
+          })
+        } else if (this.planingLine._latlngs) {
+          this.commands = this.planingLine._latlngs.map((x: L.LatLng) => { /* tslint:disable */
+            return new Command('moveTo', x.lat, x.lng, 0)
+          })
+        }
+        if (this.planingLine.removeFrom) this.planingLine.removeFrom(this.map)
+        this.refreshSetPlanLine()
+        this.commandService.updateCommands(this.commands)
+      }
+
+    }
+
+    const commit = L.Toolbar2.Action.extend({
+      options: {
+        toolbarIcon: {
+          html: `<div>Commit</div>`,
+          tooltip: 'Commit plan changes to the server'
+        }
+      },
+      addHooks: commitHook
+    });
+
+    // Listen for finished polyline paths
+    this.map.on(L.Draw.Event.CREATED, (e: L.DrawEvents.Created) => {
+      if (e.layerType === 'polyline') {
+        console.log(e.layer)
+        this.planingLine = e.layer
+        commitHook()
+      }
+    });
+
+    const discard = L.Toolbar2.Action.extend({
+      options: {
+        toolbarIcon: {
+          html: '<div>Discard</div>',
+          tooltip: 'Discard changes and revert to the existing plan'
+        }
+      },
+      addHooks: () => {
+        if (this.planingLine && this.planingLine.disable) this.planingLine.disable()
+        this.refreshCommands();
+        saveSubToolbar._hide();
+      }
+    });
+
+
+    const controlSubToolbar = new L.Toolbar2.Control({
       actions: [spabAppend, spabEdit, spabClear]
+    });
+
+    const saveSubToolbar = new L.Toolbar2.Control({
+      actions: [commit, discard]
+    });
+
+    const serverControls = L.Toolbar2.Action.extend({
+      options: {
+        toolbarIcon: {
+          html: `Server`,
+          className: "override",
+          // tslint:disable-next-line:quotemark
+          tooltip: "Manipulate the SPAB's future routes"
+        },
+        subToolbar: saveSubToolbar
+      },
+      addHooks: () => { }
     });
 
     const spabControls = L.Toolbar2.Action.extend({
       options: {
         toolbarIcon: {
-          html: '<div>SPAB</div>',
+          html: `Edit Plan`,
+          className: "override",
           // tslint:disable-next-line:quotemark
           tooltip: "Manipulate the SPAB's future routes"
         },
-        subToolbar: subToolbar
+        subToolbar: controlSubToolbar
       },
-      addHooks: () => {
-        /*this.plan.enable();*/
-      }
+      addHooks: () => { }
     });
 
     const controlBar = new L.Toolbar2.Control({
       position: 'topleft',
-      actions: [spabControls]
+      actions: [serverControls, spabControls]
     });
     controlBar.addTo(this.map);
 
@@ -165,7 +219,7 @@ export class PlanComponent implements OnInit {
         if (this.state === 'view') {
           // Update the set plan line with a new current position
           this.refreshSetPlanLine();
-        } else {
+        } else { // this.state === 'edit'
           // Move first point in editing line
           this.refreshEditablePlanLine();
         }
@@ -177,7 +231,7 @@ export class PlanComponent implements OnInit {
     if (this.setLine) {
       this.setLine.removeFrom(this.map);
     }
-    if (this.commands != null){
+    if (this.commands != null) {
       // Create a new setline, add it to map
       this.setLine = new L.Polyline(
         this.commands.reduce(
@@ -201,6 +255,14 @@ export class PlanComponent implements OnInit {
     // this.setLine.removeFrom(this.map);
 
     // this.setLine = new
+  }
+
+  private refreshCommands() {
+    this.commandService.getCommandSubject().subscribe(commands => {
+      this.commands = commands
+      // Setup display of current plan
+      this.refreshSetPlanLine();
+    });
   }
 
   // commit() {
